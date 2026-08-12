@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TBKO WEAR - Catalog</title>
+  
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase Compatibility SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tbkoNavy: '#1D3B6A',
+            tbkoRust: '#B85C28',
+            tbkoGold: '#D6923E',
+            tbkoBg: '#F8F9FA'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-tbkoBg text-gray-800 font-sans pb-20">
+
+  <!-- Header with Logo Image and Text -->
+  <header class="bg-tbkoNavy text-white p-3 sticky top-0 z-50 flex justify-between items-center shadow-md">
+    <div class="flex items-center space-x-3">
+      <img src="Tibko logo.jpg" alt="Tibko Logo" class="h-10 w-auto bg-white p-1 rounded-lg object-contain shadow-sm">
+      <div>
+        <h1 class="text-base font-bold tracking-wider leading-none">TBKO WEAR</h1>
+        <p class="text-[10px] text-tbkoGold italic mt-0.5">Wear Your Identity</p>
+      </div>
+    </div>
+    <div class="relative">
+      <a href="checkout.html" class="bg-tbkoRust p-2 rounded-full text-white font-bold text-sm inline-block shadow">
+        🛒 <span id="cartCount" class="bg-white text-tbkoNavy text-xs px-1.5 py-0.5 rounded-full font-bold">0</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Banner / Custom Order CTA -->
+  <div class="m-4 p-4 bg-gradient-to-r from-tbkoNavy to-slate-800 text-white rounded-2xl shadow-lg flex justify-between items-center">
+    <div>
+      <h2 class="font-bold text-lg">የራስዎን ዲዛይን ያትሙ!</h2>
+      <p class="text-xs text-gray-300">ምስል ወይም ፅሁፍ በመላክ ብጁ ቲሸርት ይዘዙ</p>
+      <a href="custom.html" class="inline-block mt-3 bg-tbkoRust hover:bg-orange-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow">
+        Custom Order ➔
+      </a>
+    </div>
+    <div class="text-4xl">🎨</div>
+  </div>
+
+  <!-- Categories Filter -->
+  <div class="flex space-x-2 px-4 overflow-x-auto py-2" id="categoryButtons">
+    <button onclick="filterCategory('all', this)" class="cat-btn bg-tbkoNavy text-white text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap shadow-sm">
+      ሁሉም
+    </button>
+    <button onclick="filterCategory('casual', this)" class="cat-btn bg-white text-tbkoNavy border border-tbkoNavy text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap shadow-sm">
+      Casual Tees
+    </button>
+    <button onclick="filterCategory('polo', this)" class="cat-btn bg-white text-tbkoNavy border border-tbkoNavy text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap shadow-sm">
+      Polo
+    </button>
+    <button onclick="filterCategory('cultural', this)" class="cat-btn bg-white text-tbkoNavy border border-tbkoNavy text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap shadow-sm">
+      Cultural Prints
+    </button>
+  </div>
+
+  <!-- Dynamic Product Grid -->
+  <div class="p-4 grid grid-cols-2 gap-4" id="productGrid">
+    <p class="col-span-2 text-center text-xs text-gray-400 py-6">ምርቶችን በመጫን ላይ... ⏳</p>
+  </div>
+
+  <!-- Contact Us Banner Section -->
+  <div class="mx-4 my-6 p-4 bg-white rounded-2xl shadow-md border border-gray-100 text-center">
+    <div class="w-10 h-10 bg-blue-50 text-tbkoNavy rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+      💬
+    </div>
+    <h3 class="font-bold text-tbkoNavy text-sm mb-1">ጥያቄ ወይም ተጨማሪ እርዳታ ይፈልጋሉ?</h3>
+    <p class="text-xs text-gray-500 mb-3">ማንኛውንም ጥያቄ በቀጥታ በቴሌግራም መስመራችን ያናግሩን።</p>
+    <a href="https://t.me/GI_Rum" target="_blank" class="inline-flex items-center justify-center gap-2 bg-tbkoNavy hover:bg-blue-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all active:scale-95">
+      <span>💬</span>
+      <span>Contact Us (@GI_Rum)</span>
+    </a>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // 1. Initialize Telegram WebApp
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+
+    // 2. Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCwU7g2s-xRCG3VsipwlqoA5F5R6oPcNdM",
+      authDomain: "tibko-wear.firebaseapp.com",
+      databaseURL: "https://tibko-wear-default-rtdb.firebaseio.com",
+      projectId: "tibko-wear",
+      storageBucket: "tibko-wear.firebasestorage.app",
+      messagingSenderId: "596607988947",
+      appId: "1:596607988947:web:c9e27c89d063c97492502"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 3. Realtime Fetch Products from Firebase Database
+    db.ref('products').on('value', snapshot => {
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '';
+
+      const data = snapshot.val();
+      if (!data) {
+        grid.innerHTML = '<p class="col-span-2 text-center text-xs text-gray-400 py-6">ምንም የተመዘገበ ምርት የለም።</p>';
+        return;
+      }
+
+      Object.keys(data).forEach(key => {
+        const product = data[key];
+        const productDiv = document.createElement('div');
+        productDiv.className = `product-item ${product.category || 'casual'} bg-white rounded-xl shadow border border-gray-100 overflow-hidden flex flex-col justify-between`;
+        
+        const tagHTML = product.tag ? `<span class="absolute top-2 left-2 ${product.tagColor || 'bg-tbkoGold'} text-white text-[10px] font-bold px-2 py-0.5 rounded">${product.tag}</span>` : '';
+
+        productDiv.innerHTML = `
+          <div class="relative">
+            ${tagHTML}
+            <img src="${product.image}" alt="${product.title}" class="w-full h-40 object-cover">
+          </div>
+          <div class="p-3 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-tbkoNavy text-sm line-clamp-1">${product.title}</h3>
+              <p class="text-xs text-gray-500 my-1 line-clamp-1">${product.subtitle || ''}</p>
+            </div>
+            <div class="flex justify-between items-center mt-2">
+              <span class="font-extrabold text-tbkoRust text-sm">${Number(product.price).toLocaleString()} ETB</span>
+              <button onclick="addToCart('${key}', '${product.title.replace(/'/g, "\\'")}', ${product.price}, '${product.image}')" class="bg-tbkoNavy text-white text-xs px-2.5 py-1.5 rounded-lg hover:bg-blue-900 shadow transition active:scale-95">+ Add</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(productDiv);
+      });
+    }, error => {
+      console.error("Error loading products:", error);
+      document.getElementById('productGrid').innerHTML = '<p class="col-span-2 text-center text-xs text-red-500 py-6">ምርቶችን መጫን አልተቻለም።</p>';
+    });
+
+    // 4. Category Filter Logic
+    function filterCategory(category, clickedBtn) {
+      const items = document.querySelectorAll('.product-item');
+      const buttons = document.querySelectorAll('.cat-btn');
+
+      buttons.forEach(btn => {
+        btn.classList.remove('bg-tbkoNavy', 'text-white');
+        btn.classList.add('bg-white', 'text-tbkoNavy', 'border', 'border-tbkoNavy');
+      });
+
+      clickedBtn.classList.remove('bg-white', 'text-tbkoNavy', 'border', 'border-tbkoNavy');
+      clickedBtn.classList.add('bg-tbkoNavy', 'text-white');
+
+      items.forEach(item => {
+        if (category === 'all' || item.classList.contains(category)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    // 5. Cart Storage & Badge Sync
+    function getCart() {
+      try {
+        return JSON.parse(localStorage.getItem('tbko_cart')) || [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function updateCartBadge() {
+      const cart = getCart();
+      const totalCount = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+      const badge = document.getElementById('cartCount');
+      if (badge) {
+        badge.innerText = totalCount;
+      }
+    }
+
+    function addToCart(id, title, price, image) {
+      // ከካታሎግ ዕቃ ሲጨመር የቀደመ የCustom Order ዳታ ካለ ግጭት እንዳይፈጥር ማፅዳት
+      localStorage.removeItem('tbko_pending_order');
+
+      let cart = getCart();
+      const existingItemIndex = cart.findIndex(item => item.productId === id);
+
+      if (existingItemIndex > -1) {
+        cart[existingItemIndex].quantity = (cart[existingItemIndex].quantity || 1) + 1;
+      } else {
+        cart.push({
+          isCustom: false,
+          productId: id,
+          title: title,
+          unitPrice: Number(price),
+          quantity: 1,
+          image: image || ''
+        });
+      }
+
+      localStorage.setItem('tbko_cart', JSON.stringify(cart));
+      updateCartBadge();
+    }
+
+    // ገጹ ሲከፈት የካርት መቁጠሪያውን ማዘጋጀት
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCartBadge();
+    });
+  </script>
+
+</body>
+</html>
